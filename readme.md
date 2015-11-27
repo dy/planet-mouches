@@ -12,3 +12,6 @@ TODO:
 * ink
 * river
 * painter style
+* star sky
+* planes variants
+* subtle patterns live
