@@ -79,7 +79,7 @@ raf(function draw () {
 
 	var maxDist = Math.sqrt(w*w + h*h);
 	particles.forEach(function (particle) {
-		var maxVol = 0.2, vol = 1, detune = 0;
+		var maxVol = 0.1, vol = 1, detune = 0;
 
 		var dist = Math.sqrt((driver.x - particle.x)*(driver.x - particle.x) + (driver.y - particle.y)*(driver.y - particle.y));
 
