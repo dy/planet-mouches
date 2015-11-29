@@ -1,8 +1,6 @@
-A better painter than you.
+[Universe understanding experiment](http://dfcreative.github.io/hatch/mouches.html).
 
-Mathematicians would say that is [SDE](https://en.wikipedia.org/wiki/Stochastic_differential_equation), painters would say that is a scribble, mystics would say that is life (indeed just Math.random properly applied).
-
-I just want it to produce hatching or patterns, but it appears to be a natural drawing technique by itself.
+&#35;[SDE](https://en.wikipedia.org/wiki/Stochastic_differential_equation) system, &#35;natural painting, &#35;universe, &#35;atoms, &#35;randomness, &#35;chaos, &#35;lsd, &#35;life, &#35;zen.
 
 TODO:
 
