@@ -59,9 +59,9 @@ canvas.addEventListener('mousedown', function (e) {
 var interval = 1;
 setInterval(function () {
 	particles.forEach(function (particle) {
-		particle.setGoals(particles, [0,0,w,h], 0.01);
-		particle.act(0.01);
-		particle.react([0,0,w,h], 0.01);
+		particle.setGoals(particles, [0,0,w,h], 0.002);
+		particle.act(0.002);
+		particle.react([0,0,w,h], 0.002);
 	});
 }, interval);
 
@@ -79,10 +79,9 @@ raf(function draw () {
 
 	var maxDist = Math.sqrt(w*w + h*h);
 	particles.forEach(function (particle) {
-		var maxVol = 0.1, vol = 1, detune = 0;
+		var maxVol = 0.1;
 		var dist = Math.sqrt((driver.x - particle.x)*(driver.x - particle.x) + (driver.y - particle.y)*(driver.y - particle.y));
 
-		//for each particle - draw current position
 		var v = particle.velocity;
 		var a = particle.accleration;
 
@@ -93,23 +92,11 @@ raf(function draw () {
 		angle = clamp(angle, -Math.PI, Math.PI);
 
 
-		//set oscillator frequency relative to the driver
-		if (particle !== driver) {
-			//volume depends on distance
-			vol = clamp(maxVol - dist*2.5/maxDist, 0, 1);
-			particle.gain.gain.value = vol;
-
-			//doppler mini effect
-			detune = (angle/Math.PI) * 100 || 0;
-			particle.oscillator.detune.value = detune;
-		}
-
-
-
-		ctx.fillStyle = 'hsla(' + (v*particle.mass/50 - detune) + ', ' + clamp(v*particle.mass, 0, 90) + '%, ' + clamp(v + v*particle.mass/40, 0, 60) + '%, ' + clamp(v*particle.mass/130,0,.9) + ')';
+		//for each particle - draw current position
+		ctx.fillStyle = 'hsla(' + (v*particle.mass/200 - (angle/Math.PI) * 100) + ', ' + clamp(v*particle.mass, 0, 90) + '%, ' + clamp(v + v*particle.mass/40, 0, 60) + '%, ' + clamp(v*particle.mass/130,0,.9) + ')';
 
 		ctx.beginPath();
-		ctx.arc(particle.x, particle.y, clamp(vol/maxVol, 0.2, 1) * 3 * clamp(particle.mass / 5, 1, 4), 0, 2 * Math.PI);
+		ctx.arc(particle.x, particle.y, clamp(particle.mass / 30, 0.5, 6), 0, 2 * Math.PI);
 		ctx.closePath();
 		ctx.fill();
 
