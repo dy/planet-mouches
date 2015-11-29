@@ -18,7 +18,7 @@ var driver = new Particle({mass: 432});
 particles.push(driver);
 
 
-for (var i = 0; i < 2; i++) {
+for (var i = 0; i < 3; i++) {
 	var p = new Particle({
 		color: 'black'
 	});
@@ -74,13 +74,12 @@ setInterval(function () {
 raf(function draw () {
 	var ctx = canvas.getContext('2d');
 
-	ctx.fillStyle = 'rgba(255,255,255,.03)';
-	ctx.fillRect(0,0,w,h);
+	// ctx.fillStyle = 'rgba(255,255,255,.03)';
+	// ctx.fillRect(0,0,w,h);
 
 	var maxDist = Math.sqrt(w*w + h*h);
 	particles.forEach(function (particle) {
 		var maxVol = 0.1, vol = 1, detune = 0;
-
 		var dist = Math.sqrt((driver.x - particle.x)*(driver.x - particle.x) + (driver.y - particle.y)*(driver.y - particle.y));
 
 		//for each particle - draw current position
