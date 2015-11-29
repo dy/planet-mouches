@@ -1,7 +1,6 @@
 var Canvas = require('drawille-canvas');
-var random = require('distributions-normal-random/lib/number');
 var raf = require('raf');
-var extend = require('xtend/mutable');
+var Particle = require('./lib/particle');
 
 
 //create rendering vacuum
@@ -11,88 +10,15 @@ var w = canvas.width;
 var h = canvas.height;
 
 
-
-/**
- * Single particle
- */
-function Particle (options) {
-	//current position
-	this.x = random(w/2, 100);
-	this.y = random(h/2, 100);
-
-	//velocity of the particle
-	this.vx = 0;
-	this.vy = 0;
-
-	this.ax = 0;
-	this.ay = 0;
-
-	//size
-	this.mass = random(1, 0.1);
-
-	this.color = 'black';
-
-	extend(this, options);
-}
-
-/**
- * Look at the world (other particles), create own values = goals
- */
-Particle.prototype.setGoals = function (particles, container, step) {
-	var self = this;
-
-	//attraction to other particles create squared accleration
-	//the king of clubbing particle
-	var ax = 0, ay = 0;
-	particles.forEach(function (particle) {
-		if (particle === self) return;
-		ax += (particle.x - self.x) / self.mass;
-		ay += (particle.y - self.y) / self.mass;
-	});
-
-	//own values (goals to move) - might be assessed unclearly
-	this.ax = random(ax / (particles.length - 1), 0.1);
-	this.ay = random(ay / (particles.length - 1), 0.1);
-};
-
-
-/**
- * React according to the own values
- */
-Particle.prototype.act = function (step) {
-	var self = this;
-
-	this.vx += this.ax * step;
-	this.vy += this.ay * step;
-
-	var dX = this.vx * step;
-	var dY = this.vy * step;
-
-	this.x += dX;
-	this.y += dY;
-};
-
-
-/**
- * React on limitations of the physics
- */
-Particle.prototype.react = function (container, step) {
-	//inverse bounds
-	if (this.x > container[2] || this.x < container[0]) {
-		this.vx = -this.vx;
-		this.x = clamp(this.x, container[0], container[2]);
-	}
-	if (this.y > container[3] || this.y < container[0]) {
-		this.vy = -this.vy;
-		this.y = clamp(this.y, container[1], container[3]);
-	}
-};
-
-
-
 //create set of particles (our universe)
 var particles = [];
-for (var i = 0; i < 3; i++) {
+
+//add one huge driving particle (blackhole)
+var driver = new Particle({mass: 432});
+particles.push(driver);
+
+
+for (var i = 0; i < 2; i++) {
 	var p = new Particle({
 		color: 'black'
 	});
@@ -100,29 +26,33 @@ for (var i = 0; i < 3; i++) {
 }
 
 
-//add one huge driving particle (blackhole)
-var driver = new Particle({mass: 100});
-particles.push(driver);
+//create particle
+canvas.addEventListener('mousedown', function (e) {
+	particles.push(new Particle({
+		x: e.offsetX,
+		y: e.offsetY
+	}));
+});
 
 //add direct control for the driver (discontinuous in all derivatives)
-canvas.addEventListener('mousedown', function (e) {
-	set(e);
-	canvas.addEventListener('mousemove', set);
+// canvas.addEventListener('mousedown', function (e) {
+// 	set(e);
+// 	canvas.addEventListener('mousemove', set);
 
-	function set (e) {
-		driver.x = e.offsetX;
-		driver.y = e.offsetY;
-		driver.vx = 0;
-		driver.vy = 0;
-		driver.ax = 0;
-		driver.ay = 0;
-	}
+// 	function set (e) {
+// 		driver.x = e.offsetX;
+// 		driver.y = e.offsetY;
+// 		driver.vx = 0;
+// 		driver.vy = 0;
+// 		driver.ax = 0;
+// 		driver.ay = 0;
+// 	}
 
-	canvas.addEventListener('mouseup', function end () {
-		canvas.removeEventListener('mousemove', set);
-		canvas.removeEventListener('mouseup', end);
-	});
-});
+// 	canvas.addEventListener('mouseup', function end () {
+// 		canvas.removeEventListener('mousemove', set);
+// 		canvas.removeEventListener('mouseup', end);
+// 	});
+// });
 
 
 //create interaction of particles (live)
@@ -144,27 +74,52 @@ setInterval(function () {
 raf(function draw () {
 	var ctx = canvas.getContext('2d');
 
-	//for each particle - draw current position
+	ctx.fillStyle = 'rgba(255,255,255,.03)';
+	ctx.fillRect(0,0,w,h);
+
+	var maxDist = Math.sqrt(w*w + h*h);
 	particles.forEach(function (particle) {
-		var v = Math.sqrt((particle.vx + particle.vy) * (particle.vx + particle.vy));
+		var maxVol = 0.2, vol = 1, detune = 0;
 
-		ctx.fillStyle = 'hsl(' + particle.mass * 5 + ', ' + clamp(v, 15, 90) + '%, ' + 1 / particle.mass * 50 + '%)'
+		var dist = Math.sqrt((driver.x - particle.x)*(driver.x - particle.x) + (driver.y - particle.y)*(driver.y - particle.y));
 
-		ctx.fillRect(particle.x, particle.y, clamp(particle.mass / 5, 1, 5), clamp(particle.mass / 5, 1, 5));
+		//for each particle - draw current position
+		var v = particle.velocity;
+		var a = particle.accleration;
+
+		//f is dopler effect - how much v vector is towards the target
+		var distV = [driver.x - particle.x, driver.y - particle.y];
+		var velV = [particle.vx, particle.vy];
+		var angle = (distV[0]*velV[0] + distV[1] + velV[1]) / (particle.velocity * Math.sqrt(distV[0]*distV[0] + distV[1]*distV[1])) || 0;
+		angle = clamp(angle, -Math.PI, Math.PI);
+
+
+		//set oscillator frequency relative to the driver
+		if (particle !== driver) {
+			//volume depends on distance
+			vol = clamp(maxVol - dist*2.5/maxDist, 0, 1);
+			particle.gain.gain.value = vol;
+
+			//doppler mini effect
+			detune = (angle/Math.PI) * 100 || 0;
+			particle.oscillator.detune.value = detune;
+		}
+
+
+
+		ctx.fillStyle = 'hsla(' + (v*particle.mass/50 - detune) + ', ' + clamp(v*particle.mass, 0, 90) + '%, ' + clamp(v + v*particle.mass/40, 0, 60) + '%, ' + clamp(v*particle.mass/130,0,.9) + ')';
+
+		ctx.beginPath();
+		ctx.arc(particle.x, particle.y, clamp(vol/maxVol, 0.2, 1) * 3 * clamp(particle.mass / 5, 1, 4), 0, 2 * Math.PI);
+		ctx.closePath();
+		ctx.fill();
+
 	});
 
 	raf(draw);
 });
 
 
-
-//helpers
 function clamp(a, min, max) {
 	return Math.max(min, Math.min(max, a));
-}
-function getDistance (p1, p2) {
-	return Math.sqrt((p1.x - p2.x)*(p1.x - p2.x) + (p1.y - p2.y)*(p1.y - p2.y));
-}
-function getAngle (p1, p2) {
-	return Math.atan2(p2.y - p1.y, p2.x - p1.x);
 }

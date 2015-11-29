@@ -21,6 +21,7 @@
   },
   "homepage": "https://github.com/dfcreative/hatch",
   "dependencies": {
+    "audio-context": "^0.1.0",
     "drawille-canvas": "^1.1.2",
     "raf": "^3.1.0",
     "xtend": "^4.0.1"
