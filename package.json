@@ -23,6 +23,8 @@
   "dependencies": {
     "audio-context": "^0.1.0",
     "drawille-canvas": "^1.1.2",
+    "inherits": "^2.0.1",
+    "mumath": "^2.0.0",
     "raf": "^3.1.0",
     "xtend": "^4.0.1"
   }
