@@ -37,7 +37,7 @@ speedInput.value = 1;
 speedInput.max = 500;
 speedInput.step = 1;
 document.body.appendChild(speedInput);
-speedInput.setAttribute('style', 'position: absolute; bottom: 0; left: 50%');
+speedInput.setAttribute('style', 'position: absolute; bottom: 0; right: 0%');
 speedInput.addEventListener('input', function () {
 	var speed = parseInt(speedInput.value);
 	worldWorker.postMessage({
